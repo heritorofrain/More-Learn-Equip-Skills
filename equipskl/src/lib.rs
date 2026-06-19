@@ -1,12 +1,25 @@
 #![feature(lazy_cell, ptr_sub_ptr)]
 
-use unity::prelude::*;
-use engage::gamedata::unit::Unit;
-use engage::gamesound::GameSound;
-use engage::gamedata::skill::SkillArray;
-use engage::gamemessage::GameMessage;
-use engage::sequence::unitgrowsequence::UnitGrowSequence;
-use engage::mess::Mess;
+use unity2::prelude::*;
+use engage_il2cpp::app::Unit;
+use engage_il2cpp::app::IUnit;
+use engage_il2cpp::app::IUnitMethods;
+use engage_il2cpp::app::GameSound;
+use engage_il2cpp::app::SkillArray;
+use engage_il2cpp::app::ISkillArray;
+use engage_il2cpp::app::ISkillArrayMethods;
+use engage_il2cpp::app::ISkillData;
+use engage_il2cpp::app::ISkillDataMethods;
+use engage_il2cpp::app::GameMessage;
+use engage_il2cpp::app::UnitGrowSequence;
+use engage_il2cpp::app::IUnitGrowSequence;
+use engage_il2cpp::app::IJobData;
+use engage_il2cpp::app::IJobDataMethods;
+use engage_il2cpp::app::IPersonDataMethods;
+use engage_il2cpp::combat::Character;
+use engage_il2cpp::prelude::FromIlInstance;
+use engage_il2cpp::app::SkillData_Categorys;
+use engage_il2cpp::app::Mess;
 
 use std::path::Path;
 use std::fs::read_to_string;
@@ -14,21 +27,21 @@ use std::fs::read_to_string;
 const SKILL_LEVEL: [u8; 9] = [0, 5, 10, 15, 20, 25, 30, 35, 40];
 
 
-#[unity::hook("App", "UnitGrowSequence", "LevelUp")]
-pub fn levelup_checknewequipskills(this: &UnitGrowSequence, method_info: OptionalMethod) {
+#[unity2::hook("App", "UnitGrowSequence", "LevelUp")]
+pub fn levelup_checknewequipskills(this: UnitGrowSequence, method_info: OptionalMethod) {
     call_original!(this, method_info);
 
-    let unit = this.unit;
+    let unit = this.m_unit();
     let path = Path::new("sd:/engage/config/moreequipskills/equipskills.txt");
     let new_equip_skills: String = read_to_string(path).expect("REASON");
-    let unit_jid = unit.job.name.to_string();
+    let unit_jid = unit.m_job().get_name().to_string();
     if let Some(start_bytes) = new_equip_skills.find(&unit_jid) {
         let start_bytes_0 = start_bytes + unit_jid.len();
         if let Some(end_bytes) = new_equip_skills[start_bytes_0..].find("END") {
             let end_bytes_0 = end_bytes + start_bytes_0;
             let job_equip_skills = &new_equip_skills[start_bytes_0..end_bytes_0];
-            let mut current_level = unit.level;
-            if unit.get_job().is_high() {current_level += 20};
+            let mut current_level = unit.m_level();
+            if unit.m_job().is_high() {current_level += 20};
             let mut lvl_pos = 0;
             for lvl in SKILL_LEVEL {
                 lvl_pos += 1;
@@ -40,9 +53,9 @@ pub fn levelup_checknewequipskills(this: &UnitGrowSequence, method_info: Optiona
                             if let Some(end_bytes_lvl) = job_equip_skills.find(&skill_end) {
                                 let equip_skill_lvl = &job_equip_skills[(start_bytes_lvl + 3)..end_bytes_lvl];
                                 if equip_skill_lvl == "" {break 'check_lvl};
-                                if unit.equip_skill_pool.find_sid(equip_skill_lvl).is_some() {break 'check_lvl};
-                                unit.add_to_equip_skill_pool_sid(equip_skill_lvl);
-                                learn_message(this, unit, equip_skill_lvl);
+                                if unit.m_equip_skill_pool().test(equip_skill_lvl) {break 'check_lvl};
+                                unit.m_equip_skill_pool().add(equip_skill_lvl, SkillData_Categorys::job(), 0);
+                                learn_message(this, unit, equip_skill_lvl.into());
                             };
                         };
                     };
@@ -52,20 +65,16 @@ pub fn levelup_checknewequipskills(this: &UnitGrowSequence, method_info: Optiona
     };
 }
 
-pub fn learn_message(this: &UnitGrowSequence, this_unit: &Unit, sid: &str) {
-    let name = this_unit.get_pid().to_string();
-    let m_name = Mess::get_name(name).to_string();
-    let current = SkillArray::find_sid(this_unit.equip_skill_pool, sid);
-    let current_skill = current.unwrap().fields.name;
-    let current_skill_name = current_skill.expect("REASON").to_string();
-    let m_current_skill_name = Mess::get_name(current_skill_name).to_string();
+pub fn learn_message(this: UnitGrowSequence, this_unit: Unit, sid: &str) {
+    let name = this_unit.get_name().to_string();
+    let current = this_unit.m_equip_skill_pool().find(sid);
+    let current_name = Mess::get(current.get_name()).to_string();
 
-    let message = format!("{m_name} learnt {m_current_skill_name}");
-
-    GameSound::post_event("ItemGet_Important", None);
+    let message = format!("{name} learnt {current_name}");
+    let thing = Character::instantiate().unwrap();
+    GameSound::post_event("ItemGet_Important", thing);
     GameMessage::create_key_wait(this, message);
 }
-
 
 #[skyline::main(name = "equipskl")]
 pub fn main() {

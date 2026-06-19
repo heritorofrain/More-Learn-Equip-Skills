@@ -11,9 +11,24 @@ titleid = "0100a6301214e000" # Fire Emblem Engage
 crate-type = ["cdylib"]
 
 [dependencies]
-skyline = "0.3.0"
-engage = { git = "https://github.com/DivineDragonFanClub/engage" }
-unity = { git = "https://github.com/DivineDragonFanClub/unity" }
+skyline = "0.6"
+engage-il2cpp = { git = "https://github.com/DivineDragonFanClub/engage-il2cpp" , features = [
+    "app-gamemessage",
+    "app-gamesound",
+    "app-jobdata",
+    "app-mess",
+    "app-persondata",
+    "app-skillarray",
+    "app-skilldata",
+    "app-unit",
+    "app-unitgrowsequence",
+    "combat-character",
+    "system-collections-generic-dictionary_2",
+    "system-collections-generic-list_1",
+    "system-object",
+    "unity_engine-random",
+] }
+unity2 = { git = "https://github.com/DivineDragonFanClub/unity2" }
 
 [profile.dev]
 panic = "abort"
