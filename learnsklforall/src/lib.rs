@@ -23,6 +23,10 @@ use engage_il2cpp::app::Mess;
 use engage_il2cpp::app::PersonData;
 use engage_il2cpp::app::JobData;
 use engage_il2cpp::unity_engine::Random;
+use engage_il2cpp::app::IForceMethods;
+use engage_il2cpp::app::GameUserData;
+use engage_il2cpp::app::IGameUserData;
+use engage_il2cpp::app::Difficulty;
 
 
 use std::path::Path;
@@ -173,7 +177,17 @@ pub fn create_learnskills(this: Unit, person: PersonData, job: JobData, level: i
                             if let Some(end_bytes_lvl) = job_learn_skills.find(&skill_end) {
                                 let learn_skill_lvl = &job_learn_skills[(start_bytes_lvl + 3)..end_bytes_lvl];
                                 if learn_skill_lvl == "" {break 'check_lvl};
-                                if this.m_private_skill().test(learn_skill_lvl) {break 'check_lvl};
+                                if person.get_common_skills().test(learn_skill_lvl) {break 'check_lvl};
+                                let difficulty = GameUserData::instantiate().expect("REASON").m_difficulty();
+                                if difficulty == Difficulty::normal() {
+                                if person.get_normal_skills().test(learn_skill_lvl) {break 'check_lvl};
+                                };
+                                if difficulty == Difficulty::hard() {
+                                if person.get_hard_skills().test(learn_skill_lvl) {break 'check_lvl};
+                                };
+                                if difficulty == Difficulty::lunatic() {
+                                if person.get_lunatic_skills().test(learn_skill_lvl) {break 'check_lvl};
+                                };
                                 this.m_private_skill().add(learn_skill_lvl, SkillData_Categorys::job(), 0);
                             };
                         };

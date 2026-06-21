@@ -13,8 +13,11 @@ crate-type = ["cdylib"]
 [dependencies]
 skyline = "0.6"
 engage-il2cpp = { git = "https://github.com/DivineDragonFanClub/engage-il2cpp" , features = [
+    "app-difficulty",
+    "app-force",
     "app-gamemessage",
     "app-gamesound",
+    "app-gameuserdata",
     "app-jobdata",
     "app-mess",
     "app-persondata",
