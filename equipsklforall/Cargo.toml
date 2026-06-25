@@ -1,0 +1,37 @@
+[package]
+name = "equipskl"
+version = "0.1.0"
+authors = []
+edition = "2021"
+
+[package.metadata.skyline]
+titleid = "0100a6301214e000" # Fire Emblem Engage
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+skyline = "0.6"
+engage-il2cpp = { git = "https://github.com/DivineDragonFanClub/engage-il2cpp" , features = [
+    "app-gamemessage",
+    "app-gamesound",
+    "app-jobdata",
+    "app-mess",
+    "app-persondata",
+    "app-skillarray",
+    "app-skilldata",
+    "app-unit",
+    "app-unitgrowsequence",
+    "combat-character",
+    "system-collections-generic-dictionary_2",
+    "system-collections-generic-list_1",
+    "system-object",
+] }
+unity2 = { git = "https://github.com/DivineDragonFanClub/unity2" }
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+lto = true
